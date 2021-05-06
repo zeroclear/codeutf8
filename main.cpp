@@ -98,7 +98,6 @@ int SplitString(WCHAR* str,WCHAR token,WCHAR*** splitout)
 	WCHAR** splitarray=new WCHAR*[num];
 	splitarray[0]=splitbuffer;
 	int index=1;
-
 	while (index<num)
 	{
 		//遇到token，结束上一段，开始新段
@@ -160,7 +159,7 @@ void OnCommand(HWND hWndDlg,int nCtlID,int nNotify)
 				{
 					//只允许一层目录，不进行递归
 					if (wfd.dwFileAttributes&FILE_ATTRIBUTE_DIRECTORY)
-						continue;
+						continue;		
 					if (TailMatch(wfd.cFileName,filterarray[i]))
 					{
 						//C:\123\main.cpp
@@ -173,6 +172,12 @@ void OnCommand(HWND hWndDlg,int nCtlID,int nNotify)
 						//Unicode缓冲区2倍足够，UTF-8缓冲区2倍也足够
 						DWORD dwSize;
 						BYTE* pAnsi=GrabFile(TempPath,&dwSize);
+						//检测bom，ucs2-le编码的不转换
+						if (dwSize>2 && pAnsi[0]==0xFF && pAnsi[1]==0xFE)
+						{
+							delete[] pAnsi;
+							continue;
+						}
 
 						BYTE* pUcs2=new BYTE[dwSize*2];
 						BYTE* pUtf8=new BYTE[dwSize*2];
